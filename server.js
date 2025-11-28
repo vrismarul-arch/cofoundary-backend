@@ -22,8 +22,8 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://regenorthocare.netlify.app",
-      "https://riobacked.onrender.com"
+      
+      "https://co-foundaryfrom.netlify.app"
     ],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
