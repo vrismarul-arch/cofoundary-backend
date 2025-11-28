@@ -37,6 +37,8 @@ export const getBookings = async (req, res) => {
       plan: b.planId?.title,
       pricing: b.planId?.pricing,
       status: b.status,
+      startTime: b.startTime, 
+      startDate: b.startDate,
       createdAt: b.createdAt,
     }));
 

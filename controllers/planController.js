@@ -1,14 +1,22 @@
 import Plan from "../models/planModel.js";
 import Service from "../models/serviceModel.js";
 
+// Get Plans based on Service
 export const getPlans = async (req, res) => {
   try {
-    const plans = await Plan.find().sort({ createdAt: -1 });
+    const { serviceId } = req.query;
+
+    // If service filter is present → filter else return all
+    const filter = serviceId ? { serviceId } : {};
+
+    const plans = await Plan.find(filter).sort({ createdAt: -1 });
+
     res.json({ success: true, plans });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 };
+
 
 export const createPlan = async (req, res) => {
   try {
