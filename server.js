@@ -56,5 +56,5 @@ app.use((err, req, res, next) => {
 });
 
 // Start Server
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || 5005;
 app.listen(PORT, () => console.log(`Server running on PORT ${PORT}`));
