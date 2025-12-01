@@ -22,7 +22,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      
+      "https://cofoundryspaces.in",
       "https://co-foundaryfrom.netlify.app"
     ],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
