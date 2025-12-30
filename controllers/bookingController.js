@@ -3,19 +3,20 @@ import Booking from "../models/bookingModel.js";
 /**
  * =====================================================
  * CREATE BOOKING
- * - Public form
- * - Admin manual entry
- * ❌ handler NOT allowed here
+ * - Public form / Admin manual entry
+ * ❌ handler NOT allowed
+ * ❌ status NOT allowed
  * =====================================================
  */
 export const createBooking = async (req, res) => {
   try {
+    // Remove restricted fields if sent from frontend
     const { handler, status, ...data } = req.body;
 
     const booking = await Booking.create({
       ...data,
-      status: "Pending",   // force
-      handler: null,       // block handler on create
+      status: "Pending", // force default
+      // ❌ DO NOT set handler here
     });
 
     res.status(201).json({
@@ -52,11 +53,11 @@ export const getBookings = async (req, res) => {
 
       // Business
       businessType: b.businessType,
-      gstNumber: b.gstNumber,
       businessName: b.businessName,
       designation: b.designation,
       kindOfBusiness: b.kindOfBusiness,
       businessNature: b.businessNature,
+      gstNumber: b.gstNumber,
       currentAddress: b.currentAddress,
 
       // Service
@@ -143,7 +144,7 @@ export const updateStatus = async (req, res) => {
     const booking = await Booking.findByIdAndUpdate(
       req.params.id,
       { status },
-      { new: true }
+      { new: true, runValidators: true }
     );
 
     if (!booking) {
@@ -155,7 +156,7 @@ export const updateStatus = async (req, res) => {
 
     res.json({
       success: true,
-      message: "Status updated",
+      message: "Status updated successfully",
       booking,
     });
   } catch (err) {

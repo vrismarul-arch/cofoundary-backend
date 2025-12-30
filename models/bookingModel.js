@@ -12,31 +12,17 @@ const bookingSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
-
-    startTime: {
-      type: String,
-    },
+    startTime: String,
 
     name: {
       type: String,
       required: true,
     },
 
-    businessName: {
-      type: String,
-    },
-
-    designation: {
-      type: String,
-    },
-
-    kindOfBusiness: {
-      type: String,
-    },
-
-    businessNature: {
-      type: String,
-    },
+    businessName: String,
+    designation: String,
+    kindOfBusiness: String,
+    businessNature: String,
 
     businessType: {
       type: String,
@@ -44,28 +30,21 @@ const bookingSchema = new mongoose.Schema(
       required: true,
     },
 
-    gstNumber: {
-      type: String,
-    },
+    gstNumber: String,
 
     phoneNumber: {
       type: String,
       required: true,
     },
 
-    mailId: {
-      type: String,
-    },
+    mailId: String,
+    currentAddress: String,
 
-    currentAddress: {
-      type: String,
-    },
-
-    // ✅ Handler exists BUT NOT SET DURING CREATE
+    // ✅ handler EXISTS but is OPTIONAL
     handler: {
       type: String,
-      enum: ["Sharukh", "Feroze", "Vijay","Abdul"],
-      default: null,
+      enum: ["Sharukh", "Feroze", "Vijay", "Abdul"],
+      required: false,          // IMPORTANT
     },
 
     status: {
