@@ -1,59 +1,144 @@
 import Booking from "../models/bookingModel.js";
 
-// Create Booking (Public Form)
+/**
+ * =====================================================
+ * CREATE BOOKING
+ * - Public form
+ * - Admin manual entry
+ * ❌ handler NOT allowed here
+ * =====================================================
+ */
 export const createBooking = async (req, res) => {
   try {
-    const booking = await Booking.create(req.body);
+    const { handler, status, ...data } = req.body;
+
+    const booking = await Booking.create({
+      ...data,
+      status: "Pending",   // force
+      handler: null,       // block handler on create
+    });
+
     res.status(201).json({
       success: true,
-      message: "Booking Request Submitted",
+      message: "Booking created successfully",
       booking,
     });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(400).json({
+      success: false,
+      message: err.message,
+    });
   }
 };
 
-// Get Bookings (Admin Panel)
+/**
+ * =====================================================
+ * GET ALL BOOKINGS (ADMIN)
+ * =====================================================
+ */
 export const getBookings = async (req, res) => {
   try {
     const bookings = await Booking.find()
       .populate("serviceId", "title")
-      .populate("planId", "title pricing");
+      .sort({ createdAt: -1 });
 
     const formatted = bookings.map((b) => ({
       _id: b._id,
+
+      // User
       name: b.name,
+      phoneNumber: b.phoneNumber,
+      mailId: b.mailId,
+
+      // Business
+      businessType: b.businessType,
+      gstNumber: b.gstNumber,
       businessName: b.businessName,
       designation: b.designation,
       kindOfBusiness: b.kindOfBusiness,
       businessNature: b.businessNature,
-      businessAlreadyExists: b.businessAlreadyExists,
-      gstRegistered: b.gstRegistered,
-      phoneNumber: b.phoneNumber,
-      mailId: b.mailId,
       currentAddress: b.currentAddress,
+
+      // Service
       service: b.serviceId?.title,
-      plan: b.planId?.title,
-      pricing: b.planId?.pricing,
-      status: b.status,
-      startTime: b.startTime, 
+      serviceId: b.serviceId,
+
+      // Schedule
       startDate: b.startDate,
+      startTime: b.startTime,
+
+      // Admin
+      handler: b.handler,
+      status: b.status,
+
       createdAt: b.createdAt,
     }));
 
-    res.json({ success: true, bookings: formatted });
+    res.json({
+      success: true,
+      bookings: formatted,
+    });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
   }
 };
 
-// Admin — Update Booking Status
+/**
+ * =====================================================
+ * UPDATE BOOKING (ADMIN)
+ * ✔ handler allowed
+ * ✔ full edit
+ * =====================================================
+ */
+export const updateBooking = async (req, res) => {
+  try {
+    const booking = await Booking.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Booking updated successfully",
+      booking,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  }
+};
+
+/**
+ * =====================================================
+ * UPDATE STATUS ONLY (ADMIN)
+ * =====================================================
+ */
 export const updateStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    if (!status)
-      return res.status(400).json({ success: false, message: "Status required" });
+
+    if (!status) {
+      return res.status(400).json({
+        success: false,
+        message: "Status is required",
+      });
+    }
 
     const booking = await Booking.findByIdAndUpdate(
       req.params.id,
@@ -61,15 +146,50 @@ export const updateStatus = async (req, res) => {
       { new: true }
     );
 
-    if (!booking)
-      return res.status(404).json({ success: false, message: "Not Found" });
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
 
     res.json({
       success: true,
-      message: "Status Updated",
+      message: "Status updated",
       booking,
     });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  }
+};
+
+/**
+ * =====================================================
+ * DELETE BOOKING (ADMIN)
+ * =====================================================
+ */
+export const deleteBooking = async (req, res) => {
+  try {
+    const booking = await Booking.findByIdAndDelete(req.params.id);
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Booking deleted successfully",
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
   }
 };

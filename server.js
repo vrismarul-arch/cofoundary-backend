@@ -8,6 +8,7 @@ import serviceRoutes from "./routes/serviceRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import planRoutes from "./routes/planRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
+import cookieRoutes from "./routes/cookieRoutes.js";
 
 dotenv.config();
 
@@ -44,6 +45,7 @@ app.use("/api/admin", authRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/plans", planRoutes);
 app.use("/api/bookings", bookingRoutes);
+app.use("/api/cookies", cookieRoutes);
 
 // Global Error Handler (optional—but recommended)
 app.use((err, req, res, next) => {
