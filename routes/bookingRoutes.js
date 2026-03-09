@@ -1,22 +1,28 @@
+// routes/bookingRoutes.js
 import express from "express";
 import {
   createBooking,
   getBookings,
-  updateStatus,
+  getBookingById,
+  getBookingByBookingId,
+  getBookingsByPlan,
   updateBooking,
+  updateStatus,
   deleteBooking,
 } from "../controllers/bookingController.js";
-import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// Public / Manual Admin
+// Public route (no auth required for creating booking)
 router.post("/", createBooking);
 
-// Admin
-router.get("/admin/bookings", protect, getBookings);
-router.put("/admin/bookings/:id/status", protect, updateStatus);
-router.put("/admin/bookings/:id", protect, updateBooking);
-router.delete("/admin/bookings/:id", protect, deleteBooking);
+// Admin routes (add your auth middleware as needed)
+router.get("/admin/bookings", getBookings);
+router.get("/admin/bookings/id/:id", getBookingById);
+router.get("/admin/bookings/bookingId/:bookingId", getBookingByBookingId); // Search by custom booking ID
+router.get("/admin/bookings/plan/:planId", getBookingsByPlan);
+router.put("/admin/bookings/:id", updateBooking);
+router.patch("/admin/bookings/:id/status", updateStatus);
+router.delete("/admin/bookings/:id", deleteBooking);
 
 export default router;

@@ -1,3 +1,4 @@
+// controllers/bookingController.js
 import Booking from "../models/bookingModel.js";
 
 /**
@@ -19,10 +20,15 @@ export const createBooking = async (req, res) => {
       // ❌ DO NOT set handler here
     });
 
+    // Populate the response
+    const populatedBooking = await Booking.findById(booking._id)
+      .populate("serviceId", "title")
+      .populate("planId", "title pricing");
+
     res.status(201).json({
       success: true,
       message: "Booking created successfully",
-      booking,
+      booking: populatedBooking,
     });
   } catch (err) {
     res.status(400).json({
@@ -41,10 +47,12 @@ export const getBookings = async (req, res) => {
   try {
     const bookings = await Booking.find()
       .populate("serviceId", "title")
+      .populate("planId", "title pricing") // Populate plan data
       .sort({ createdAt: -1 });
 
     const formatted = bookings.map((b) => ({
       _id: b._id,
+      bookingId: b.bookingId, // Include custom booking ID
 
       // User
       name: b.name,
@@ -63,6 +71,11 @@ export const getBookings = async (req, res) => {
       // Service
       service: b.serviceId?.title,
       serviceId: b.serviceId,
+
+      // Plan - NEW
+      planId: b.planId,
+      planTitle: b.planTitle || b.planId?.title,
+      pricing: b.pricing || b.planId?.pricing,
 
       // Schedule
       startDate: b.startDate,
@@ -103,7 +116,8 @@ export const updateBooking = async (req, res) => {
         new: true,
         runValidators: true,
       }
-    );
+    ).populate("serviceId", "title")
+     .populate("planId", "title pricing"); // Populate after update
 
     if (!booking) {
       return res.status(404).json({
@@ -112,10 +126,36 @@ export const updateBooking = async (req, res) => {
       });
     }
 
+    // Format the response
+    const formattedBooking = {
+      _id: booking._id,
+      bookingId: booking.bookingId,
+      name: booking.name,
+      phoneNumber: booking.phoneNumber,
+      mailId: booking.mailId,
+      businessType: booking.businessType,
+      businessName: booking.businessName,
+      designation: booking.designation,
+      kindOfBusiness: booking.kindOfBusiness,
+      businessNature: booking.businessNature,
+      gstNumber: booking.gstNumber,
+      currentAddress: booking.currentAddress,
+      service: booking.serviceId?.title,
+      serviceId: booking.serviceId,
+      planId: booking.planId,
+      planTitle: booking.planTitle || booking.planId?.title,
+      pricing: booking.pricing || booking.planId?.pricing,
+      startDate: booking.startDate,
+      startTime: booking.startTime,
+      handler: booking.handler,
+      status: booking.status,
+      createdAt: booking.createdAt,
+    };
+
     res.json({
       success: true,
       message: "Booking updated successfully",
-      booking,
+      booking: formattedBooking,
     });
   } catch (err) {
     res.status(500).json({
@@ -145,7 +185,8 @@ export const updateStatus = async (req, res) => {
       req.params.id,
       { status },
       { new: true, runValidators: true }
-    );
+    ).populate("serviceId", "title")
+     .populate("planId", "title pricing");
 
     if (!booking) {
       return res.status(404).json({
@@ -186,6 +227,120 @@ export const deleteBooking = async (req, res) => {
     res.json({
       success: true,
       message: "Booking deleted successfully",
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  }
+};
+
+/**
+ * =====================================================
+ * GET SINGLE BOOKING (ADMIN)
+ * =====================================================
+ */
+export const getBookingById = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id)
+      .populate("serviceId", "title")
+      .populate("planId", "title pricing");
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    const formattedBooking = {
+      _id: booking._id,
+      bookingId: booking.bookingId,
+      name: booking.name,
+      phoneNumber: booking.phoneNumber,
+      mailId: booking.mailId,
+      businessType: booking.businessType,
+      businessName: booking.businessName,
+      designation: booking.designation,
+      kindOfBusiness: booking.kindOfBusiness,
+      businessNature: booking.businessNature,
+      gstNumber: booking.gstNumber,
+      currentAddress: booking.currentAddress,
+      service: booking.serviceId?.title,
+      serviceId: booking.serviceId,
+      planId: booking.planId,
+      planTitle: booking.planTitle || booking.planId?.title,
+      pricing: booking.pricing || booking.planId?.pricing,
+      startDate: booking.startDate,
+      startTime: booking.startTime,
+      handler: booking.handler,
+      status: booking.status,
+      createdAt: booking.createdAt,
+    };
+
+    res.json({
+      success: true,
+      booking: formattedBooking,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  }
+};
+
+/**
+ * =====================================================
+ * GET BOOKINGS BY PLAN (ADMIN)
+ * =====================================================
+ */
+export const getBookingsByPlan = async (req, res) => {
+  try {
+    const { planId } = req.params;
+    
+    const bookings = await Booking.find({ planId })
+      .populate("serviceId", "title")
+      .populate("planId", "title pricing")
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      count: bookings.length,
+      bookings,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  }
+};
+
+/**
+ * =====================================================
+ * GET BOOKING BY BOOKING ID (ADMIN)
+ * =====================================================
+ */
+export const getBookingByBookingId = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    
+    const booking = await Booking.findOne({ bookingId })
+      .populate("serviceId", "title")
+      .populate("planId", "title pricing");
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      booking,
     });
   } catch (err) {
     res.status(500).json({
