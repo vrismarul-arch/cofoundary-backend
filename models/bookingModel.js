@@ -1,12 +1,27 @@
-// models/bookingModel.js
 import mongoose from "mongoose";
 
 const bookingSchema = new mongoose.Schema(
   {
-    // Custom booking ID (e.g., COID-001, COID-002)
+    // Custom booking ID (auto-generated: COID-001 or manual: 8 char alphanumeric)
     bookingId: {
       type: String,
       unique: true,
+      required: true,
+    },
+
+    // Lead Type fields
+    leadSource: {
+      type: String,
+      enum: ["instagram", "reference", "other"],
+      default: "other",
+    },
+    instagramHandle: {
+      type: String,
+      trim: true,
+    },
+    referencePerson: {
+      type: String,
+      trim: true,
     },
 
     serviceId: {
@@ -15,16 +30,12 @@ const bookingSchema = new mongoose.Schema(
       required: true,
     },
 
-    // Add plan reference
     planId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Plan",
     },
 
-    // Add plan title (denormalized for easy access)
     planTitle: String,
-
-    // Add pricing as string (matches plan schema)
     pricing: String,
 
     startDate: {
@@ -67,20 +78,29 @@ const bookingSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["Pending", "Approved", "Cancelled"],
+      enum: [
+        "Pending", 
+        "Confirmed", 
+        "Docs Yet to receive", 
+        "Draft Sent", 
+        "Signed", 
+        "Invoiced",
+        "Approved", 
+        "Cancelled"
+      ],
       default: "Pending",
     },
   },
   { timestamps: true }
 );
 
-// Pre-save middleware to generate custom booking ID
+// Pre-save middleware to generate custom booking ID only if not provided
 bookingSchema.pre('save', async function(next) {
-  if (this.isNew) {
+  if (this.isNew && !this.bookingId) {
     try {
       // Find the last booking to get the latest bookingId
       const lastBooking = await this.constructor.findOne(
-        {}, 
+        { bookingId: { $regex: '^COID-' } }, // Only look for COID format
         { bookingId: 1 }, 
         { sort: { bookingId: -1 } }
       );
